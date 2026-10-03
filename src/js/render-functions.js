@@ -38,9 +38,9 @@ export function createGallery(images) {
         `
     )
     .join('');
-  lightbox.refresh();
 
   refs.gallery.insertAdjacentHTML('beforeend', markup);
+  lightbox.refresh();
 }
 
 export function clearGallery() {

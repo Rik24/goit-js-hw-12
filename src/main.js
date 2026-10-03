@@ -33,29 +33,36 @@ async function handleFormSubmit(event) {
   showLoader();
 
   currentPage = 1;
-  await getImagesByQuery(query, currentPage)
-    .then(({ hits: images, totalHits: total }) => {
-      const totalPages = Math.ceil(total / PER_PAGE);
-      if (images.length > 0) {
-        createGallery(images);
-        showLoadMoreBtn();
+  try {
+    const { hits: images, totalHits: total } = await getImagesByQuery(
+      query,
+      currentPage
+    );
+    const totalPages = Math.ceil(total / PER_PAGE);
 
-        if (currentPage === totalPages) {
-          showTost(
-            `We're sorry, but you've reached the end of search results.`,
-            'info'
-          );
-          hideLoadMoreBtn();
-        }
-      } else {
+    if (images.length > 0) {
+      createGallery(images);
+
+      if (currentPage === totalPages) {
         showTost(
-          `Sorry, there are no images matching your ${query}. Please try again!`,
-          'error'
+          `We're sorry, but you've reached the end of search results.`,
+          'info'
         );
+        hideLoadMoreBtn();
+      } else {
+        showLoadMoreBtn();
       }
-    })
-    .catch(error => showTost(error, 'error'))
-    .finally(() => hideLoader());
+    } else {
+      showTost(
+        `Sorry, there are no images matching your ${query}. Please try again!`,
+        'error'
+      );
+    }
+  } catch (error) {
+    showTost(error, 'error');
+  } finally {
+    hideLoader();
+  }
 }
 
 async function handleLoadMoreBtn() {
@@ -64,52 +71,47 @@ async function handleLoadMoreBtn() {
   }
   currentPage += 1;
 
-  // hideLoadMoreBtn();
+  hideLoadMoreBtn();
   showLoader();
 
-  await getImagesByQuery(query, currentPage)
-    .then(({ hits: images, totalHits: total }) => {
-      const totalPages = Math.ceil(total / PER_PAGE);
+  try {
+    const { hits: images, totalHits: total } = await getImagesByQuery(
+      query,
+      currentPage
+    );
 
-      if (images.length > 0) {
-        createGallery(images);
-        showLoadMoreBtn();
+    const totalPages = Math.ceil(total / PER_PAGE);
 
-        console.log('window.scrollY before:', window.scrollY);
-        console.log('doc scrollHeight:', document.documentElement.scrollHeight);
-        console.log('win innerHeight:', window.innerHeight);
-        console.log(
-          'max scroll:',
-          document.documentElement.scrollHeight - window.innerHeight
-        );
+    if (images.length > 0) {
+      createGallery(images);
 
-        const cardHeight = document
-          .querySelector('.gallery-item')
-          .getBoundingClientRect().height;
-        console.log('cardHeight:', cardHeight);
+      const cardHeight = document
+        .querySelector('.gallery-item')
+        .getBoundingClientRect().height;
 
-        window.scrollBy({ top: cardHeight * 2, behavior: 'smooth' });
+      window.scrollBy({ top: cardHeight * 2, behavior: 'smooth' });
 
-        setTimeout(() => {
-          console.log('window.scrollY after:', window.scrollY);
-        }, 700);
-
-        if (currentPage === totalPages) {
-          showTost(
-            `We're sorry, but you've reached the end of search results.`,
-            'info'
-          );
-          hideLoadMoreBtn();
-        }
-      } else {
+      if (currentPage === totalPages) {
         showTost(
-          `Sorry, there are no images matching your ${query}. Please try again!`,
-          'error'
+          `We're sorry, but you've reached the end of search results.`,
+          'info'
         );
+        hideLoadMoreBtn();
+      } else {
+        showLoadMoreBtn();
       }
-    })
-    .catch(error => showTost(error, 'error'))
-    .finally(() => hideLoader());
+    } else {
+      showTost(
+        `Sorry, there are no images matching your ${query}. Please try again!`,
+        'error'
+      );
+    }
+  } catch (error) {
+    showTost(error, 'error');
+    showLoadMoreBtn();
+  } finally {
+    hideLoader();
+  }
 }
 function showTost(message, type = 'success') {
   const options = {
